@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  author: Michael Schmitz
+  namespace: rheinwerk
+  role_name: haproxy
+  description: Installs HAProxy
+  company: Rheinwerk
+  license: license (GPLv3)
+  min_ansible_version: 2.10.0
+  platforms:
+    - name: Ubuntu
+      versions:
+      - focal
+      - jammy
+  galaxy_tags:
+    - haproxy
+dependencies: []
