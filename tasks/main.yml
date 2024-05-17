@@ -1,0 +1,111 @@
+---
+- name: Print HAProxy instance name
+  ansible.builtin.debug:
+    msg: "haproxy instance {{ _haproxy.instance_name }}"
+
+- name: Configure kernel parameters
+  ansible.builtin.copy:
+    src: "etc/sysctl.d/{{ item }}"
+    dest: "/etc/sysctl.d/{{ item }}"
+    mode: "0644"
+    owner: root
+    group: root
+  with_items:
+    - 10-network-buffers.conf
+    - 30-haproxy.conf
+  notify:
+    - Start procps
+    - "Reload haproxy {{ _haproxy.instance_name }}"
+
+- name: Add HAProxy PPA
+  ansible.builtin.apt_repository:
+    repo: "ppa:vbernat/haproxy-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
+    update_cache: yes
+
+- name: Install HAProxy
+  ansible.builtin.apt:
+    state: present
+    force: true
+    pkg:
+      - "haproxy={{ _haproxy.version }}"
+      - "socat"
+  notify:
+    - "Reload haproxy {{ _haproxy.instance_name }}"
+    - "Restart rsyslog"
+
+- name: Create HAProxy configuration directory
+  ansible.builtin.file:
+    path: "/etc/{{ _haproxy.instance_name }}"
+    state: directory
+    owner: haproxy
+    group: haproxy
+    mode: "0755"
+
+- name: SSL Certs
+  when: _haproxy.ssl_certs is defined
+  block:
+    - name: Create SSL certificate directory
+      ansible.builtin.file:
+        path: "/etc/{{ _haproxy.instance_name }}/ssl"
+        state: directory
+        owner: haproxy
+        group: haproxy
+        mode: "0755"
+
+    - name: Install SSL certificates and keys
+      ansible.builtin.copy:
+        content: "{{ item.value.data | b64decode }}"
+        dest: "/etc/{{ _haproxy.instance_name }}/ssl/{{ item.value.filename }}"
+        owner: haproxy
+        group: haproxy
+        mode: "0640"
+      with_dict: "{{ _haproxy.ssl_certs | default({}) }}"
+      notify:
+        - "Reload haproxy {{ _haproxy.instance_name }}"
+
+    - name: Inform external collector about our certificate location
+      ansible.builtin.lineinfile:
+        dest: /etc/cert_exp_time_globs
+        owner: root
+        group: root
+        mode: "0644"
+        create: yes
+        line: "/etc/{{ _haproxy.instance_name }}/ssl/*"
+
+- name: Create HAProxy configuration file
+  ansible.builtin.template:
+    src: "etc/{{ _haproxy.instance_name }}/{{ _haproxy.instance_name }}.cfg.j2"
+    dest: "/etc/{{ _haproxy.instance_name }}/{{ _haproxy.instance_name }}.cfg"
+    owner: haproxy
+    group: haproxy
+    mode: "0640"
+  notify:
+    - "Reload haproxy {{ _haproxy.instance_name }}"
+  when: _haproxy.use_default_config|default(no)
+
+- name: Create HAProxy systemd helper script
+  ansible.builtin.file:
+    path: "/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/{{ _haproxy.instance_name }}.service"
+    state: "touch"
+    owner: root
+    group: root
+    mode: "0644"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Create HAProxy systemd unit
+  ansible.builtin.template:
+    src: "usr/lib/systemd/system/haproxy.service.j2"
+    dest: "/usr/lib/systemd/system/{{ _haproxy.instance_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable HAProxy for autostart
+  ansible.builtin.systemd:
+    name: "{{ _haproxy.instance_name }}"
+    enabled: yes
+    daemon_reload: yes
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

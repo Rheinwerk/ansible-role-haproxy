@@ -1,0 +1,12 @@
+---
+_haproxy:
+  use_default_config: "yes"
+  instance_name: "demo-haproxy"
+  version: "2.8*"
+  admin:
+    user: "admin"
+    password: "this-is-secret"
+    binds:
+      - ip: "0.0.0.0"
+        port: 8404
+  error_files: []
