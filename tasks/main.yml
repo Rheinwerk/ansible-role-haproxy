@@ -21,6 +21,32 @@
   ansible.builtin.apt_repository:
     repo: "ppa:vbernat/haproxy-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
     update_cache: yes
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Add HAProxy Repo
+  block:
+    - name: Add APT Pin for haproxy.debian.net
+      ansible.builtin.copy:
+        dest: /etc/apt/preferences.d/haproxy
+        mode: 0644
+        content: |
+          # Ansible managed
+          Package: haproxy haproxy-dbgsym haproxy-doc vim-haproxy
+          Pin: release o=PPA-haproxy
+          Pin-Priority: 1001
+
+    - name: Download gpg key from haproxy.debian.net
+      ansible.builtin.get_url:
+        url: https://haproxy.debian.net/bernat.debian.org.gpg
+        dest: /usr/share/keyrings/haproxy.debian.net.asc
+        mode: 0644
+
+    - name: Add haproxy debian repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/haproxy.debian.net.asc] http://haproxy.debian.net {{ ansible_distribution_release }}-backports-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }} main"
+        update_cache: true
+        filename: haproxy
+  when: ansible_distribution == 'Debian'
 
 - name: Install HAProxy
   ansible.builtin.apt:
