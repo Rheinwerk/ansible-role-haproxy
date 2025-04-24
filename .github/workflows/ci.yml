@@ -53,7 +53,7 @@ jobs:
             experimental: true
 
     steps:
-      - uses: Rheinwerk/molecule@main
+      - uses: Rheinwerk/molecule@feat
         with:
           distro: ${{ matrix.distro }}
           ansible_scenario: ${{ matrix.ansible_scenario }}
