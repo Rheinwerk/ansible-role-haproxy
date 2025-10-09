@@ -108,7 +108,7 @@
     mode: "0640"
   notify:
     - "Reload haproxy {{ _haproxy.instance_name }}"
-  when: _haproxy.use_default_config|default(no)
+  when: _haproxy.use_default_config | default(false) | bool
 
 - name: Create HAProxy systemd helper script
   ansible.builtin.file:
