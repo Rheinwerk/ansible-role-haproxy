@@ -21,9 +21,14 @@
   ansible.builtin.apt_repository:
     repo: "ppa:vbernat/haproxy-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
     update_cache: yes
-  when: ansible_distribution == 'Ubuntu'
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - _haproxy.use_external_repo | default(true) | bool
 
 - name: Add HAProxy Debian Repo
+  when:
+    - ansible_distribution == 'Debian'
+    - _haproxy.use_external_repo | default(true) | bool
   block:
     - name: Add APT Pin for haproxy.debian.net
       ansible.builtin.copy:
@@ -47,7 +52,6 @@
     - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
-  when: ansible_distribution == 'Debian'
 
 - name: Install HAProxy
   ansible.builtin.apt:
