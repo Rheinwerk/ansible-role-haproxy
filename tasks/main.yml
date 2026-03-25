@@ -24,6 +24,7 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: Add HAProxy Debian Repo
+  when: ansible_distribution == 'Debian'
   block:
     - name: Add APT Pin for haproxy.debian.net
       ansible.builtin.copy:
@@ -47,7 +48,6 @@
     - name: Run the equivalent of "apt-get update" as a separate step
       ansible.builtin.apt:
         update_cache: yes
-  when: ansible_distribution == 'Debian'
 
 - name: Install HAProxy
   ansible.builtin.apt:
