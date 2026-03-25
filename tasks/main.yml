@@ -29,7 +29,7 @@
     - name: Add APT Pin for haproxy.debian.net
       ansible.builtin.copy:
         dest: /etc/apt/preferences.d/haproxy
-        mode: 0644
+        mode: "0644"
         content: |
           # Ansible managed
           Package: haproxy haproxy-dbgsym haproxy-doc vim-haproxy
