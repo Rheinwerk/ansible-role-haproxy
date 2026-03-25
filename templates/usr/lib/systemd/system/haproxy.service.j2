@@ -9,9 +9,8 @@ Wants=network-online.target
 EnvironmentFile=-/etc/default/{{ _haproxy.instance_name }}
 EnvironmentFile=-/etc/sysconfig/{{ _haproxy.instance_name }}
 Environment="CONFIG=/etc/{{ _haproxy.instance_name }}/{{ _haproxy.instance_name }}.cfg" "PIDFILE=/run/{{ _haproxy.instance_name }}.pid" "EXTRAOPTS=-S /run/haproxy-master.sock"
-ExecStartPre=/usr/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
 ExecStart=/usr/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
-ExecReload=/usr/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
+ExecReload=/usr/sbin/haproxy -Ws -f $CONFIG -c $EXTRAOPTS
 ExecReload=/bin/kill -USR2 $MAINPID
 KillMode=mixed
 Restart=always
