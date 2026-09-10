@@ -34,7 +34,7 @@
           # Ansible managed
           Package: haproxy haproxy-dbgsym haproxy-doc vim-haproxy
           Pin: release o=PPA-haproxy
-          Pin-Priority: 1001
+          Pin-Priority: 990
 
     - name: Add haproxy debian repository
       ansible.builtin.deb822_repository:
