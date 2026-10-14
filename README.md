@@ -15,11 +15,13 @@ good idea to mention in this section that the boto package is required.
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including
-any variables that are in defaults/main.yml, vars/main.yml, and any variables
-that can/should be set via parameters to the role. Any variables that are read
-from other roles and/or the global scope (ie. hostvars, group vars, etc.) should
-be mentioned here as well.
+All settings live in the `_haproxy` dictionary (see `defaults/main.yml`); passing
+`_haproxy` replaces the whole dictionary.
+
+`_haproxy.version` is the apt version pattern of the HAProxy series, e.g. `"3.2*"`. It
+selects the haproxy.debian.net suite (Debian) or the vbernat PPA (Ubuntu) and pins the
+package to it. The default is `"2.8*"`, except on Debian 13 (trixie), where
+haproxy.debian.net has no 2.8 and the default is `"3.2*"` (`vars/main.yml`).
 
 Dependencies
 ------------

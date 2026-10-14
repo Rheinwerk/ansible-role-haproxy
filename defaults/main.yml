@@ -2,7 +2,7 @@
 _haproxy:
   use_default_config: "yes"
   instance_name: "demo-haproxy"
-  version: "2.8*"
+  version: "{{ _haproxy_default_version[ansible_facts['distribution_release']] | default('2.8*') }}"
   admin:
     user: "admin"
     password: "this-is-secret"
