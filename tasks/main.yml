@@ -21,10 +21,10 @@
   ansible.builtin.apt_repository:
     repo: "ppa:vbernat/haproxy-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
     update_cache: yes
-  when: ansible_distribution == 'Ubuntu'
+  when: ansible_facts['distribution'] == 'Ubuntu'
 
 - name: Add HAProxy Debian Repo
-  when: ansible_distribution == 'Debian'
+  when: ansible_facts['distribution'] == 'Debian'
   block:
     - name: Add APT Pin for haproxy.debian.net
       ansible.builtin.copy:
@@ -45,7 +45,7 @@
         name: haproxy
         types: deb
         uris: http://haproxy.debian.net
-        suites: "{{ ansible_distribution_release }}-backports-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
+        suites: "{{ ansible_facts['distribution_release'] }}-backports-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
         components: main
         signed_by: https://haproxy.debian.net/bernat.debian.org.gpg
 
