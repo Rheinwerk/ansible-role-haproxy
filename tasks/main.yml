@@ -1,7 +1,7 @@
 ---
 - name: Print HAProxy instance name
   ansible.builtin.debug:
-    msg: "haproxy instance {{ _haproxy.instance_name }}"
+    msg: "haproxy instance {{ _haproxy_instance_name }}"
 
 - name: Configure kernel parameters
   ansible.builtin.copy:
@@ -15,11 +15,11 @@
     - 30-haproxy.conf
   notify:
     - Start procps
-    - "Reload haproxy {{ _haproxy.instance_name }}"
+    - "Reload haproxy {{ _haproxy_instance_name }}"
 
 - name: Add HAProxy PPA
   ansible.builtin.apt_repository:
-    repo: "ppa:vbernat/haproxy-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
+    repo: "ppa:vbernat/haproxy-{{ _haproxy_version.split('.')[:2] | join('.') | replace('*', '') }}"
     update_cache: yes
   when: ansible_facts['distribution'] == 'Ubuntu'
 
@@ -33,7 +33,7 @@
         content: |
           # Ansible managed
           Package: haproxy haproxy-dbgsym haproxy-doc vim-haproxy
-          Pin: version {{ _haproxy.version }}
+          Pin: version {{ _haproxy_version }}
           Pin-Priority: 1001
 
           Package: haproxy haproxy-dbgsym haproxy-doc vim-haproxy
@@ -45,7 +45,7 @@
         name: haproxy
         types: deb
         uris: http://haproxy.debian.net
-        suites: "{{ ansible_facts['distribution_release'] }}-backports-{{ _haproxy.version.split('.')[:2] | join('.') | replace('*', '') }}"
+        suites: "{{ ansible_facts['distribution_release'] }}-backports-{{ _haproxy_version.split('.')[:2] | join('.') | replace('*', '') }}"
         components: main
         signed_by: https://haproxy.debian.net/bernat.debian.org.gpg
 
@@ -58,26 +58,26 @@
     state: present
     force: true
     pkg:
-      - "haproxy={{ _haproxy.version }}"
+      - "haproxy={{ _haproxy_version }}"
       - "socat"
   notify:
-    - "Reload haproxy {{ _haproxy.instance_name }}"
+    - "Reload haproxy {{ _haproxy_instance_name }}"
     - "Restart rsyslog"
 
 - name: Create HAProxy configuration directory
   ansible.builtin.file:
-    path: "/etc/{{ _haproxy.instance_name }}"
+    path: "/etc/{{ _haproxy_instance_name }}"
     state: directory
     owner: haproxy
     group: haproxy
     mode: "0755"
 
 - name: SSL Certs
-  when: _haproxy.ssl_certs is defined
+  when: _haproxy_ssl_certs is defined
   block:
     - name: Create SSL certificate directory
       ansible.builtin.file:
-        path: "/etc/{{ _haproxy.instance_name }}/ssl"
+        path: "/etc/{{ _haproxy_instance_name }}/ssl"
         state: directory
         owner: haproxy
         group: haproxy
@@ -86,13 +86,13 @@
     - name: Install SSL certificates and keys
       ansible.builtin.copy:
         content: "{{ item.value.data | b64decode }}"
-        dest: "/etc/{{ _haproxy.instance_name }}/ssl/{{ item.value.filename }}"
+        dest: "/etc/{{ _haproxy_instance_name }}/ssl/{{ item.value.filename }}"
         owner: haproxy
         group: haproxy
         mode: "0640"
-      with_dict: "{{ _haproxy.ssl_certs | default({}) }}"
+      with_dict: "{{ _haproxy_ssl_certs }}"
       notify:
-        - "Reload haproxy {{ _haproxy.instance_name }}"
+        - "Reload haproxy {{ _haproxy_instance_name }}"
 
     - name: Inform external collector about our certificate location
       ansible.builtin.lineinfile:
@@ -101,22 +101,22 @@
         group: root
         mode: "0644"
         create: yes
-        line: "/etc/{{ _haproxy.instance_name }}/ssl/*"
+        line: "/etc/{{ _haproxy_instance_name }}/ssl/*"
 
 - name: Create HAProxy configuration file
   ansible.builtin.template:
-    src: "etc/{{ _haproxy.instance_name }}/{{ _haproxy.instance_name }}.cfg.j2"
-    dest: "/etc/{{ _haproxy.instance_name }}/{{ _haproxy.instance_name }}.cfg"
+    src: "etc/{{ _haproxy_instance_name }}/{{ _haproxy_instance_name }}.cfg.j2"
+    dest: "/etc/{{ _haproxy_instance_name }}/{{ _haproxy_instance_name }}.cfg"
     owner: haproxy
     group: haproxy
     mode: "0640"
   notify:
-    - "Reload haproxy {{ _haproxy.instance_name }}"
-  when: _haproxy.use_default_config | default(false) | bool
+    - "Reload haproxy {{ _haproxy_instance_name }}"
+  when: _haproxy_use_default_config | bool
 
 - name: Create HAProxy systemd helper script
   ansible.builtin.file:
-    path: "/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/{{ _haproxy.instance_name }}.service"
+    path: "/var/lib/systemd/deb-systemd-helper-enabled/multi-user.target.wants/{{ _haproxy_instance_name }}.service"
     state: "touch"
     owner: root
     group: root
@@ -127,14 +127,14 @@
 - name: Create HAProxy systemd unit
   ansible.builtin.template:
     src: "usr/lib/systemd/system/haproxy.service.j2"
-    dest: "/usr/lib/systemd/system/{{ _haproxy.instance_name }}.service"
+    dest: "/usr/lib/systemd/system/{{ _haproxy_instance_name }}.service"
     owner: root
     group: root
     mode: "0644"
 
 - name: Enable HAProxy for autostart
   ansible.builtin.systemd:
-    name: "{{ _haproxy.instance_name }}"
+    name: "{{ _haproxy_instance_name }}"
     enabled: yes
     daemon_reload: yes
 

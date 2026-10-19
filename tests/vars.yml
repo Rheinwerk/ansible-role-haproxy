@@ -1,0 +1,12 @@
+---
+# The shared molecule scenario runs the role with its defaults; the demo configuration needs the
+# demo instance name, an admin password and binds reachable in the container. The admin user is
+# a marker that proves the variable is honoured.
+_haproxy_use_default_config: "yes"
+_haproxy_instance_name: "demo-haproxy"
+_haproxy_admin:
+  user: "molecule-admin"
+  password: "this-is-secret"
+  binds:
+    - ip: "0.0.0.0"
+      port: 8404

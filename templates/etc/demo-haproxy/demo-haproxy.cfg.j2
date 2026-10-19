@@ -2,7 +2,7 @@
 {% block global %}
 global
   log /dev/log local0 info
-  stats socket /var/run/{{ _haproxy.instance_name }}.stat user haproxy group haproxy mode 600 level admin
+  stats socket /var/run/{{ _haproxy_instance_name }}.stat user haproxy group haproxy mode 600 level admin
   user haproxy
   group haproxy
   daemon
@@ -39,13 +39,13 @@ defaults
 {% block admin %}
 # -- Admin --
 listen admin
-  bind {% for bind in _haproxy.admin.binds %}{{ bind.ip }}:{{ bind.port }}{%if not loop.last%},{%endif%}{%endfor%}
+  bind {% for bind in _haproxy_admin.binds %}{{ bind.ip }}:{{ bind.port }}{%if not loop.last%},{%endif%}{%endfor%}
 
   stats enable
-  stats auth {{ _haproxy.admin.user }}:{{ _haproxy.admin.password }}
+  stats auth {{ _haproxy_admin.user }}:{{ _haproxy_admin.password }}
   stats uri /monitor
   stats show-node
-  stats show-desc instance name {{ _haproxy.instance_name }}
+  stats show-desc instance name {{ _haproxy_instance_name }}
   stats refresh 10s
 # -- /Admin --
 {% endblock admin %}
