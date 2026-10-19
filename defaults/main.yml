@@ -1,12 +1,25 @@
 ---
-_haproxy:
-  use_default_config: "yes"
-  instance_name: "demo-haproxy"
-  version: "{{ _haproxy_default_version[ansible_facts['distribution_release']] | default('2.8*') }}"
-  admin:
-    user: "admin"
-    password: "this-is-secret"
-    binds:
-      - ip: "0.0.0.0"
-        port: 8404
-  error_files: []
+# Render the role's demo configuration to /etc/<instance>/<instance>.cfg (a template exists for the
+# demo-haproxy instance only). CenterDevice images get their configuration from update_haproxy_config.
+_haproxy_use_default_config: false
+
+# Name of the HAProxy instance: configuration directory, systemd unit and reload handler
+_haproxy_instance_name: "haproxy"
+
+# apt version pattern of the HAProxy series, selecting the haproxy.debian.net suite (Debian) or the
+# vbernat PPA (Ubuntu): 2.8 everywhere, except on Debian 13 (trixie), where haproxy.debian.net
+# publishes no 2.8 and vars/main.yml maps the release to 3.2
+_haproxy_version: "{{ _haproxy_default_version[ansible_facts['distribution_release']] | default('2.8*') }}"
+
+# Stats endpoint of the demo configuration; add `password` when _haproxy_use_default_config is set
+_haproxy_admin:
+  user: "admin"
+  binds:
+    - ip: "127.0.0.1"
+      port: 8404
+
+# Optional, no default: certificates to install to /etc/<instance>/ssl
+# _haproxy_ssl_certs:
+#   example:
+#     filename: example.pem
+#     data: <base64 encoded PEM>

@@ -1,5 +1,5 @@
 ---
-# HAProxy series installed when _haproxy sets no version, per distribution release.
+# HAProxy series behind the _haproxy_version default, per distribution release.
 # haproxy.debian.net publishes no 2.8 for trixie; other releases use 2.8.
 _haproxy_default_version:
   trixie: "3.2*"

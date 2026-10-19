@@ -1,0 +1,28 @@
+---
+# The demo configuration is rendered from the _haproxy_* variables set in tests/vars.yml, and the
+# role's own unit must keep HAProxy running.
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Read the demo configuration
+      ansible.builtin.slurp:
+        src: /etc/demo-haproxy/demo-haproxy.cfg
+      register: verify_haproxy_cfg
+
+    - name: The stats auth line is rendered from _haproxy_admin
+      ansible.builtin.assert:
+        that:
+          - "'stats auth molecule-admin:this-is-secret' in content"
+        fail_msg: "{{ content | regex_findall('stats auth .*') }}"
+      vars:
+        content: "{{ verify_haproxy_cfg.content | b64decode }}"
+
+    - name: Collect service facts
+      ansible.builtin.service_facts:
+
+    - name: HAProxy runs with the role's unit and configuration
+      ansible.builtin.assert:
+        that: ansible_facts.services['demo-haproxy.service'].state == 'running'
+        fail_msg: "demo-haproxy is {{ ansible_facts.services['demo-haproxy.service'] | default('missing') }}"

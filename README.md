@@ -3,42 +3,47 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Installs HAProxy from haproxy.debian.net (Debian) or the vbernat PPA (Ubuntu), pinned to one
+series, with a systemd unit per instance name.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should
-be mentioned here. For instance, if the role uses the EC2 module, it may be a
-good idea to mention in this section that the boto package is required.
+None.
 
 Role Variables
 --------------
 
-All settings live in the `_haproxy` dictionary (see `defaults/main.yml`); passing
-`_haproxy` replaces the whole dictionary.
+Every setting is one variable with a default in `defaults/main.yml`; set only the ones that differ.
 
-`_haproxy.version` is the apt version pattern of the HAProxy series, e.g. `"3.2*"`. It
-selects the haproxy.debian.net suite (Debian) or the vbernat PPA (Ubuntu) and pins the
-package to it. The default is `"2.8*"`, except on Debian 13 (trixie), where
-haproxy.debian.net has no 2.8 and the default is `"3.2*"` (`vars/main.yml`).
+| Variable | Default |
+|---|---|
+| `_haproxy_instance_name` | `haproxy`: configuration directory `/etc/<instance>`, unit `<instance>.service`, handler `Reload haproxy <instance>` |
+| `_haproxy_version` | apt version pattern of the series: `"2.8*"`, on Debian 13 (trixie) `"3.2*"` because haproxy.debian.net has no 2.8 there (`vars/main.yml`) |
+| `_haproxy_use_default_config` | `false`; `true` renders the role's demo configuration, which exists for the instance name `demo-haproxy` only |
+| `_haproxy_admin` | stats endpoint of the demo configuration: user `admin`, bind `127.0.0.1:8404`; add `password` with the demo configuration |
+| `_haproxy_ssl_certs` | no default; `{name: {filename, data}}` with base64 PEM data, installed to `/etc/<instance>/ssl` |
+
+`_haproxy_version` selects the haproxy.debian.net suite (Debian) or the vbernat PPA (Ubuntu) and pins
+the package to it. Until v1.5.1 the role took one `_haproxy` dict with these keys instead.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in
-regards to parameters that may need to be set for other roles, or variables that
-are used from other roles.
+None.
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables
-passed in as parameters) is always nice for users too:
+Only the instance name differs from the defaults here:
 
     - hosts: servers
+      vars:
+        _haproxy_instance_name: "haproxy-public"
       roles:
-         - { role: ansible-role-haproxy, _haproxy: "{{ HAPROXY }}" }
+         - { role: haproxy, tags: [ 'haproxy' ] }
+
+The play must provide the handler `Reload haproxy <instance name>`.
 
 License
 -------
